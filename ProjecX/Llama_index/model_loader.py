@@ -4,13 +4,13 @@ from llama_index.embeddings.google_genai import GoogleGenAIEmbedding
 from llama_index.core import Settings
 from llama_index.llms.google_genai import GoogleGenAI
 import loguru
+from llama_index.core import Settings
 
 
 class ModelLoader:
     def __init__(
         self,
-        ##model_name: str = "gpt-oss:120b-cloud",
-        model_name: str = "gemini-2.5-flash",
+        model_name: str = "gpt-oss:120b-cloud",
         embedding_model_name: str = "qwen3-embedding:4b",
     ):
         self.model_name = model_name
@@ -22,20 +22,15 @@ class ModelLoader:
     def load_models(self):
         try:
             self.logger.info(f"Loading LLM: {self.model_name}")
-            ###self.llm = Ollama(model=self.model_name)
-            self.llm = GoogleGenAI(
-                model=self.model_name,
-                api_key="AIzaSyACbX4GBw2SFtHslGBeSlrmsP2O6pd_kJ0"
-            )
+            self.llm = Ollama(model=self.model_name)
+            
+            
 
             self.logger.info(f"Loading embedding model: {self.embedding_model_name}")
-            """self.embed_model = OllamaEmbedding(
+            self.embed_model = OllamaEmbedding(
                 model_name=self.embedding_model_name
-            )"""
-            self.embed_model = GoogleGenAIEmbedding(
-                model_name="gemini-embedding-001",
-                api_key="AIzaSyACbX4GBw2SFtHslGBeSlrmsP2O6pd_kJ0"
             )
+           
 
             self.logger.info("Models loaded successfully")
         except Exception:

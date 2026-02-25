@@ -1,9 +1,9 @@
 import loguru
 from pathlib import Path
-from Llama_index.model_loader import ModelLoader
-from Llama_index.data_retirval import DataRetrieval
-from Llama_index.Data_ingestion import chunking, VectorStoreManager
-from Llama_index.Data_ingestion import Docloader  
+from ProjecX.Llama_index.model_loader import ModelLoader
+from ProjecX.Llama_index.data_retirval import DataRetrieval
+from ProjecX.Llama_index.Data_ingestion import chunking, VectorStoreManager
+from ProjecX.Llama_index.Data_ingestion import Docloader  
 
 class Rag_pipeline:
     def __init__(self):
@@ -16,7 +16,7 @@ class Rag_pipeline:
         self.vector_store_manager = VectorStoreManager()
 
    
-    def run_pipeline(self, file_path: str, query: str,persist_dir:str):
+    def run_pipeline(self, file_path: str, query: str):
         try:
             self.model_loader.load_models()
             self.model_loader.set_settings()
@@ -27,7 +27,7 @@ class Rag_pipeline:
                 chunks = self.chunker.chunk_text(text)
                 documents = self.chunker.convert_chunks(chunks)
 
-            index = self.vector_store_manager.get_or_create(documents,persist_dir=persist_dir)
+            index = self.vector_store_manager.get_or_create(documents)
 
             query_engine = index.as_query_engine(
                 similarity_top_k=5,

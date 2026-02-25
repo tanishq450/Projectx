@@ -1,9 +1,9 @@
 import asyncio
 import ast
 from autogen_agentchat.messages import UserMessage
-from Auto.model import get_model
-from Llama_index.Rag_pipeline import Rag_pipeline
-from Auto.web_search import web_search_agent
+from ProjecX.Auto.model import get_model
+from ProjecX.Llama_index.Rag_pipeline import Rag_pipeline
+from ProjecX.Auto.web_search import web_search_agent
 import loguru
 logger = loguru.logger.bind(name="customteam")
 
@@ -75,8 +75,9 @@ class CustomTeam:
     # ---------- RUN ----------
     async def run(self, query: str):
         rag_result = await asyncio.to_thread(self.rag_pipeline.run_pipeline,
-            "/home/tanishq/ProjecX/Llama_index/harrypotter.pdf",
-            query
+           "/home/tanishq/Projectx/ProjecX/Llama_index/1706.03762v7.pdf",
+            query,
+            
         )
 
         score = float(rag_result["top_score"])
@@ -110,9 +111,7 @@ class CustomTeam:
                 "score": score,
             }
 
-        logger.info(f"RAG + WEB score: {score}")
-        logger.info(f"RAG + WEB answer: {answer}")
-
+        
         # WEB ONLY
         web_task = await self.web_agent.run(task=query)
         web_docs = self.extract_web_docs(web_task)
@@ -129,8 +128,7 @@ class CustomTeam:
             "score": score,
         }
 
-        logger.info(f"WEB score: {score}")
-        logger.info(f"WEB answer: {answer}")
+        
 
 if __name__ == "__main__":
     import asyncio
@@ -142,6 +140,6 @@ if __name__ == "__main__":
         loop = asyncio.get_running_loop()
         result = loop.create_task(team.run("Who is Harry Potter"))
     except RuntimeError:
-        result = asyncio.run(team.run("Who is Harry Potter"))
+        result = asyncio.run(team.run("What is attention mechanism"))
 
     print(result)

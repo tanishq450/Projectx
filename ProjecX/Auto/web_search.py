@@ -1,12 +1,12 @@
 from autogen_agentchat.agents import AssistantAgent
 import tavily
-from Auto.model import get_model
+from ProjecX.Auto.model import get_model
 from langchain_tavily import TavilySearch
 from loguru import logger
 from autogen_core.models import UserMessage
 from autogen_ext.models.ollama import OllamaChatCompletionClient
 import asyncio
-from Auto.prompt import web_search_prompt
+from ProjecX.Auto.prompt import web_search_prompt
 
 
 

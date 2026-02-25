@@ -3,8 +3,7 @@ from autogen_ext.models.ollama import OllamaChatCompletionClient
 from autogen_ext.models.openai import OpenAIChatCompletionClient
 
 def get_model():
-    return OpenAIChatCompletionClient(model="gemini-2.5-flash",
-                                          api_key="AIzaSyACbX4GBw2SFtHslGBeSlrmsP2O6pd_kJ0",
+    return OllamaChatCompletionClient(model="gpt-oss:120b-cloud",
                                           model_info={
                                                 "max_tokens": 4096, 
                                                 "vision":True,
@@ -14,6 +13,6 @@ def get_model():
                                                 "presence_penalty": 0.0,
                                                 "function_calling": "auto",
                                                 "json_output":"true",
-                                                "family":"google"
+                                                "family":"gpt"
                                           }
     )

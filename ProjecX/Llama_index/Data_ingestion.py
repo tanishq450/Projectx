@@ -7,9 +7,7 @@ from chonkie import RecursiveChunker
 from llama_index.vector_stores.chroma import ChromaVectorStore
 from llama_index.core import Document
 from pathlib import Path
-from Llama_index.model_loader import Settings
 from llama_index.core import load_index_from_storage
-
 from llama_index.vector_stores.faiss import FaissVectorStore
 import faiss
 
@@ -114,33 +112,43 @@ class chunking:
 
 
 
-
-
 class VectorStoreManager:
-    def __init__(self, vector_store_path: str = "./vector_store"):
-        self.vector_store_path = Path(vector_store_path)
+    def __init__(self, base_path: str = "./vector_store"):
+        self.base_path = Path(base_path)
         self.logger = loguru.logger
+        self.model_name = "qwen3-embedding:4b"
+
+        # discover embedding dimension dynamically
+        
+        self.embed_dim =2560
+
+
+        # versioned persist dir
+        self.vector_store_path = (
+            self.base_path / self.model_name / f"dim_{self.embed_dim}"
+        )
 
     def _exists(self) -> bool:
-        return (self.vector_store_path / "docstore.json").exists()
-
+        return (
+            (self.vector_store_path / "index.faiss").exists()
+            and (self.vector_store_path / "docstore.json").exists()
+        )
     def create_and_persist(self, documents: list) -> VectorStoreIndex:
         if not documents:
             raise ValueError("No documents provided for vector store creation")
 
-        self.logger.info("Creating FAISS vector store")
+        self.logger.info(
+            f"Creating FAISS vector store ({self.model_name}, dim={self.embed_dim})"
+        )
 
         self.vector_store_path.mkdir(parents=True, exist_ok=True)
 
-
-        embed_dim = 3072
-
-        faiss_index = faiss.IndexFlatL2(embed_dim)  
-
+        faiss_index = faiss.IndexFlatL2(self.embed_dim)
         vector_store = FaissVectorStore(faiss_index=faiss_index)
 
         storage_context = StorageContext.from_defaults(
-            vector_store=vector_store
+            vector_store=vector_store,
+           
         )
 
         index = VectorStoreIndex.from_documents(
@@ -152,13 +160,14 @@ class VectorStoreManager:
             persist_dir=str(self.vector_store_path)
         )
 
-        self.logger.info("FAISS vector store created and persisted")
-
         return index
 
-    
-    def load(self):
-        self.logger.info("Loading existing FAISS vector store")
+    def load_for_query(self) -> VectorStoreIndex:
+        if not self._exists():
+            raise RuntimeError(
+                f"No vector index found for "
+                f"{self.model_name} (dim={self.embed_dim})"
+            )
 
         vector_store = FaissVectorStore.from_persist_dir(
             persist_dir=str(self.vector_store_path)
@@ -166,14 +175,14 @@ class VectorStoreManager:
 
         storage_context = StorageContext.from_defaults(
             vector_store=vector_store,
-            persist_dir=str(self.vector_store_path)
-        )
+            persist_dir=str(self.vector_store_path),
+    )
 
         return load_index_from_storage(storage_context)
 
     def get_or_create(self, documents: list | None = None) -> VectorStoreIndex:
         if self._exists():
-            return self.load()
+            return self.load_for_query()
 
         if documents is None:
             raise RuntimeError(
@@ -181,6 +190,3 @@ class VectorStoreManager:
             )
 
         return self.create_and_persist(documents)
-
-
-
