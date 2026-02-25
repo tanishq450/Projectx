@@ -6,12 +6,14 @@ from ProjecX.Llama_index.Rag_pipeline import Rag_pipeline
 from ProjecX.Auto.web_search import web_search_agent
 import loguru
 logger = loguru.logger.bind(name="customteam")
+from pathlib import Path
 
 class CustomTeam:
-    def __init__(self, rag_pipeline, web_agent):
+    def __init__(self, rag_pipeline, web_agent,vector_dir:Path):
         self.rag_pipeline = rag_pipeline
         self.web_agent = web_agent
         self.model = get_model()
+        self.vector_dir = vector_dir.resolve()
 
     # ---------- UTIL ----------
     def extract_web_docs(self, task_result) -> dict:
@@ -70,17 +72,18 @@ class CustomTeam:
             ]
         )
 
-        return response
+        return response.content
 
     # ---------- RUN ----------
-    async def run(self, query: str):
-        rag_result = await asyncio.to_thread(self.rag_pipeline.run_pipeline,
-           "/home/tanishq/Projectx/ProjecX/Llama_index/1706.03762v7.pdf",
-            query,
-            
+    async def run(self, query: str,doc_id:str):
+        persist_dir = self.vector_dir / doc_id
+        rag_result = await asyncio.to_thread(self.rag_pipeline.query,   
+           query,
+           str(persist_dir),
+           
         )
 
-        score = float(rag_result["top_score"])
+        score = float(rag_result["score"])
 
         # RAG ONLY
         if score >= 0.80:
@@ -101,7 +104,7 @@ class CustomTeam:
 
             answer = await self.synthesize(
                 query=query,
-                rag_nodes=rag_result["nodes"],
+                rag_nodes=rag_result["nodes",[]],
                 web_docs=web_docs,
             )
 
@@ -130,6 +133,7 @@ class CustomTeam:
 
         
 
+"""
 if __name__ == "__main__":
     import asyncio
 
@@ -143,3 +147,4 @@ if __name__ == "__main__":
         result = asyncio.run(team.run("What is attention mechanism"))
 
     print(result)
+"""

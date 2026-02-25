@@ -10,6 +10,8 @@ from pathlib import Path
 from llama_index.core import load_index_from_storage
 from llama_index.vector_stores.faiss import FaissVectorStore
 import faiss
+import chromadb 
+
 
 
 class Docloader:
@@ -112,43 +114,35 @@ class chunking:
 
 
 
+
 class VectorStoreManager:
-    def __init__(self, base_path: str = "./vector_store"):
-        self.base_path = Path(base_path)
+    def __init__(self):
         self.logger = loguru.logger
-        self.model_name = "qwen3-embedding:4b"
 
-        # discover embedding dimension dynamically
-        
-        self.embed_dim =2560
-
-
-        # versioned persist dir
-        self.vector_store_path = (
-            self.base_path / self.model_name / f"dim_{self.embed_dim}"
-        )
-
-    def _exists(self) -> bool:
-        return (
-            (self.vector_store_path / "index.faiss").exists()
-            and (self.vector_store_path / "docstore.json").exists()
-        )
-    def create_and_persist(self, documents: list) -> VectorStoreIndex:
+    # ---------- CREATE ----------
+    def create(self, documents: list, persist_dir: str) -> VectorStoreIndex:
         if not documents:
-            raise ValueError("No documents provided for vector store creation")
+            raise ValueError("No documents provided")
 
-        self.logger.info(
-            f"Creating FAISS vector store ({self.model_name}, dim={self.embed_dim})"
+        self.logger.info(f"Creating Chroma index at {persist_dir}")
+        Path(persist_dir).mkdir(parents=True, exist_ok=True)
+
+        chroma_client = chromadb.Client(
+            settings=chromadb.Settings(
+                persist_directory=persist_dir
+            )
         )
 
-        self.vector_store_path.mkdir(parents=True, exist_ok=True)
+        collection = chroma_client.get_or_create_collection(
+            name="rag_docs"
+        )
 
-        faiss_index = faiss.IndexFlatL2(self.embed_dim)
-        vector_store = FaissVectorStore(faiss_index=faiss_index)
+        vector_store = ChromaVectorStore(
+            chroma_collection=collection
+        )
 
         storage_context = StorageContext.from_defaults(
-            vector_store=vector_store,
-           
+            vector_store=vector_store
         )
 
         index = VectorStoreIndex.from_documents(
@@ -156,37 +150,34 @@ class VectorStoreManager:
             storage_context=storage_context,
         )
 
-        index.storage_context.persist(
-            persist_dir=str(self.vector_store_path)
-        )
+    
+        storage_context.persist(persist_dir=persist_dir)
 
         return index
+    
+    def load(self, persist_dir: str) -> VectorStoreIndex:
+        if not Path(persist_dir).exists():
+            raise RuntimeError(f"No vector index found at {persist_dir}")
 
-    def load_for_query(self) -> VectorStoreIndex:
-        if not self._exists():
-            raise RuntimeError(
-                f"No vector index found for "
-                f"{self.model_name} (dim={self.embed_dim})"
+        chroma_client = chromadb.Client(
+            settings=chromadb.Settings(
+                persist_directory=persist_dir
             )
+        )
 
-        vector_store = FaissVectorStore.from_persist_dir(
-            persist_dir=str(self.vector_store_path)
+        collection = chroma_client.get_or_create_collection(
+            name="rag_docs"
+        )
+
+        vector_store = ChromaVectorStore(
+            chroma_collection=collection
         )
 
         storage_context = StorageContext.from_defaults(
-            vector_store=vector_store,
-            persist_dir=str(self.vector_store_path),
-    )
+            vector_store=vector_store
+        )
 
-        return load_index_from_storage(storage_context)
-
-    def get_or_create(self, documents: list | None = None) -> VectorStoreIndex:
-        if self._exists():
-            return self.load_for_query()
-
-        if documents is None:
-            raise RuntimeError(
-                "Vector store does not exist and no documents were provided"
-            )
-
-        return self.create_and_persist(documents)
+        return VectorStoreIndex.from_vector_store(
+            vector_store,
+            storage_context=storage_context,
+        )
