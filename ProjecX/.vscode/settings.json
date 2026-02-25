@@ -1,0 +1,6 @@
+{
+    "python.analysis.extraPaths": [
+        "./Llama_index"
+    ],
+    "git.ignoreLimitWarning": true
+}
