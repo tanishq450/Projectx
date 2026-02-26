@@ -1,6 +1,5 @@
 README.md
 pyproject.toml
-ProjecX/main.py
 ProjecX/Auto/Rag_agent.py
 ProjecX/Auto/__init__.py
 ProjecX/Auto/model.py
@@ -11,6 +10,7 @@ ProjecX/Auto/web_search.py
 ProjecX/Llama_index/Data_ingestion.py
 ProjecX/Llama_index/Rag_pipeline.py
 ProjecX/Llama_index/__init__.py
+ProjecX/Llama_index/chroma_client.py
 ProjecX/Llama_index/data_retirval.py
 ProjecX/Llama_index/model_loader.py
 projecx.egg-info/PKG-INFO
