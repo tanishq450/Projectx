@@ -64,7 +64,7 @@ class Docloader:
     
 
 class chunking:
-    def __init__(self, chunk_size: int = 1000, output_dir: str = "./data"):
+    def __init__(self, chunk_size: int = 1000, output_dir: str = "./data",chunk_overlap: int = 200):
         self.chunk_size = chunk_size
         self.output_dir = output_dir
         self.logger = loguru.logger
@@ -72,7 +72,7 @@ class chunking:
     def chunk_text(self,text:str):
         try:
             self.logger.info(f"Chunking text")
-            chunker = RecursiveChunker(chunk_size=self.chunk_size)
+            chunker = RecursiveChunker(chunk_size=self.chunk_size,chunk_overlap=self.chunk_overlap)
             chunks = chunker.chunk(text)
             self.logger.info(f"Text chunked successfully")
             return chunks

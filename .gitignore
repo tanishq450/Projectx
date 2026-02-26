@@ -3,3 +3,6 @@ __pycache__
 *.pyc
 .venv
 .env
+.vector_stores
+.uploads
+ProjecX/Llama_index/data    
