@@ -3,7 +3,7 @@ from llama_index.core import VectorStoreIndex, SimpleDirectoryReader, StorageCon
 import fitz
 import os
 import loguru
-from chonkie import RecursiveChunker
+from chonkie import TokenChunker
 from llama_index.vector_stores.chroma import ChromaVectorStore
 from llama_index.core import Document
 from pathlib import Path
@@ -64,16 +64,17 @@ class Docloader:
     
 
 class chunking:
-    def __init__(self, chunk_size: int = 1000, output_dir: str = "./data",chunk_overlap: int = 200):
+    def __init__(self, chunk_size: int = 1000, output_dir: str = "./data",stride: int = 200):
         self.chunk_size = chunk_size
         self.output_dir = output_dir
         self.logger = loguru.logger
+        self.stride = stride
         
     def chunk_text(self,text:str):
         try:
             self.logger.info(f"Chunking text")
-            chunker = RecursiveChunker(chunk_size=self.chunk_size,chunk_overlap=self.chunk_overlap)
-            chunks = chunker.chunk(text)
+            chunker = TokenChunker(chunk_size=self.chunk_size,chunk_overlap=self.stride)
+            chunks = chunker(text)
             self.logger.info(f"Text chunked successfully")
             return chunks
         except Exception as e:

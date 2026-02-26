@@ -69,6 +69,7 @@ class Rag_pipeline:
             return {
                 "answer": response.response,
                 "score": score,
+                "nodes": nodes,
             }
 
         except Exception:

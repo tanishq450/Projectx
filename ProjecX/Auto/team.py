@@ -104,7 +104,7 @@ class CustomTeam:
 
             answer = await self.synthesize(
                 query=query,
-                rag_nodes=rag_result["nodes",[]],
+                rag_nodes=rag_result["nodes"],
                 web_docs=web_docs,
             )
 
