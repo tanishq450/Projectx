@@ -9,8 +9,7 @@ from llama_index.core import Document
 from pathlib import Path
 from llama_index.core import load_index_from_storage
 from llama_index.vector_stores.faiss import FaissVectorStore
-import faiss
-import chromadb 
+import faiss    
 from ProjecX.Llama_index.chroma_client import get_chroma_client
 
 
