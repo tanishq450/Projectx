@@ -25,3 +25,4 @@ llama-index-vector-stores-faiss
 chromadb
 faiss-cpu
 tavily
+python-multipart
