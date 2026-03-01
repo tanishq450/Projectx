@@ -4,7 +4,7 @@ from fastapi.testclient import TestClient
 
 def test_app_starts_and_responds():
     # Import must succeed (this catches path + case issues)
-    import main  
+    import Projectx.main as main  
 
     assert hasattr(main, "app"), "FastAPI app object not found"
 
@@ -19,7 +19,7 @@ def test_app_starts_and_responds():
 
 
 def test_upload_rejects_non_pdf():
-    import main
+    import Projectx.main as main
     client = TestClient(main.app)
 
     response = client.post(
