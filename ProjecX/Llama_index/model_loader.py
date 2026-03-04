@@ -10,7 +10,7 @@ from llama_index.core import Settings
 class ModelLoader:
     def __init__(
         self,
-        model_name: str = "gpt-oss:120b-cloud",
+        model_name: str = "qwen3.5:397b-cloud",
         embedding_model_name: str = "qwen3-embedding:4b",
     ):
         self.model_name = model_name

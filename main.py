@@ -18,7 +18,9 @@ VECTOR_DIR = BASE_DIR / "vector_stores"
 UPLOAD_DIR.mkdir(exist_ok=True)
 VECTOR_DIR.mkdir(exist_ok=True)
 
-rag_pipeline = Rag_pipeline()
+@app.get("/")
+def root():
+    return {"message": "Document RAG server running"}
 
 
 # ---------------- Core objects ----------------
