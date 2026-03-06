@@ -26,3 +26,7 @@ chromadb
 faiss-cpu
 tavily
 python-multipart
+sentence-transformers
+##torch torchvision --index-url https://download.pytorch.org/whl/cpu
+torch 
+torchvision

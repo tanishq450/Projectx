@@ -4,6 +4,15 @@ from ProjecX.Llama_index.model_loader import ModelLoader
 from ProjecX.Llama_index.data_retirval import DataRetrieval
 from ProjecX.Llama_index.Data_ingestion import chunking, VectorStoreManager
 from ProjecX.Llama_index.Data_ingestion import Docloader  
+from llama_index.core.postprocessor import SentenceTransformerRerank
+
+
+
+reranker = SentenceTransformerRerank(
+    model="BAAI/bge-reranker-large",
+    top_n=5
+)
+
 
 class Rag_pipeline:
     def __init__(self):
@@ -59,6 +68,8 @@ class Rag_pipeline:
             query_engine = index.as_query_engine(
                 similarity_top_k=5,
                 response_mode="compact",
+                verbose=True,
+                node_postprocessors=[reranker]
             )
 
             response = query_engine.query(query)
