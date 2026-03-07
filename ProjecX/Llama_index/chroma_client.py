@@ -3,6 +3,8 @@ import os
 
 _clients = {}
 
+
+
 def get_chroma_client(persist_dir: str) -> chromadb.Client:
     if persist_dir not in _clients:
 
