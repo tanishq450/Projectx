@@ -9,7 +9,7 @@ from llama_index.core.postprocessor import SentenceTransformerRerank
 
 
 reranker = SentenceTransformerRerank(
-    model="BAAI/bge-reranker-large",
+    model="BAAI/bge-reranker-v2-gemma",
     top_n=5
 )
 
@@ -66,10 +66,13 @@ class Rag_pipeline:
             index = self.vector_store_manager.load(persist_dir)
 
             query_engine = index.as_query_engine(
-                similarity_top_k=5,
+                similarity_top_k=20,
                 response_mode="compact",
                 verbose=True,
                 node_postprocessors=[reranker]
+            )
+            self.logger.info(
+                f"Query engine created successfully"
             )
 
             response = query_engine.query(query)
