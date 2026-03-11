@@ -5,6 +5,10 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "projecx"
 version = "0.1.0"
+dependencies = [
+    "llama-index>=0.14.15",
+    "llama-index-vector-stores-chroma>=0.5.5",
+]
 
 [tool.setuptools.packages.find]
 include = ["ProjecX*"]

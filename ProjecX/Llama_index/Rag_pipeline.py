@@ -9,7 +9,7 @@ from llama_index.core.postprocessor import SentenceTransformerRerank
 
 
 reranker = SentenceTransformerRerank(
-    model="BAAI/bge-reranker-v2-gemma",
+    model="BAAI/bge-reranker-v2-m3",
     top_n=5
 )
 

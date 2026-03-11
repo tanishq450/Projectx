@@ -1,3 +1,5 @@
 Metadata-Version: 2.4
 Name: projecx
 Version: 0.1.0
+Requires-Dist: llama-index>=0.14.15
+Requires-Dist: llama-index-vector-stores-chroma>=0.5.5

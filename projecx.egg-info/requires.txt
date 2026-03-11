@@ -1,0 +1,2 @@
+llama-index>=0.14.15
+llama-index-vector-stores-chroma>=0.5.5

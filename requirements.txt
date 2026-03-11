@@ -27,5 +27,6 @@ faiss-cpu
 tavily
 python-multipart
 sentence-transformers
+chonkie
 
 

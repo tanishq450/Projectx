@@ -1,10 +1,11 @@
 from llama_index.llms.ollama import Ollama
 from llama_index.embeddings.ollama import OllamaEmbedding
-from llama_index.embeddings.google_genai import GoogleGenAIEmbedding
 from llama_index.core import Settings
-from llama_index.llms.google_genai import GoogleGenAI
 import loguru
 from llama_index.core import Settings
+from llama_index.llms.ollama import Ollama
+from llama_index.embeddings.google_genai import GoogleGenAIEmbedding
+from os import getenv
 
 
 class ModelLoader:
@@ -23,9 +24,9 @@ class ModelLoader:
         try:
             self.logger.info(f"Loading LLM: {self.model_name}")
             self.llm = Ollama(model=self.model_name)
-            
-            
 
+            
+            
             self.logger.info(f"Loading embedding model: {self.embedding_model_name}")
             self.embed_model = OllamaEmbedding(
                 model_name=self.embedding_model_name
