@@ -8,7 +8,7 @@ import asyncio
 from ragas import evaluate
 from ragas.metrics import faithfulness, answer_relevancy, context_precision
 
-# Your pipeline
+
 from ProjecX.Llama_index.Rag_pipeline import Rag_pipeline
 import asyncio
 from langchain_community.chat_models import ChatOllama
