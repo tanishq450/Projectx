@@ -61,7 +61,7 @@ def llm_judge(question, answer):
 
 
 
-llm = ChatOllama(model=MODEL)  # or your model
+llm = ChatOllama(model=MODEL)  
 
 
 
