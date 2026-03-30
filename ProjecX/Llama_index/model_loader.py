@@ -8,11 +8,14 @@ from llama_index.embeddings.google_genai import GoogleGenAIEmbedding
 from os import getenv
 
 
+
+
 class ModelLoader:
     def __init__(
         self,
         model_name: str = "qwen3.5:397b-cloud",
         embedding_model_name: str = "qwen3-embedding:4b",
+        
     ):
         self.model_name = model_name
         self.embedding_model_name = embedding_model_name

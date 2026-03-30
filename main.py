@@ -18,7 +18,9 @@ app = FastAPI(title="ProjectX RAG Server", version="2.0.0")
 BASE_DIR = Path(__file__).resolve().parent
 UPLOAD_DIR = BASE_DIR / "uploads"
 
+
 UPLOAD_DIR.mkdir(exist_ok=True)
+
 
 @app.get("/")
 def root():
@@ -30,7 +32,6 @@ rag_pipeline = Rag_pipeline()
 team = CustomTeam(
     rag_pipeline=rag_pipeline,
     web_agent=web_search_agent(),
-    vector_dir=None,  # ❌ no longer needed
 )
 
 # ---------------- Schemas ----------------

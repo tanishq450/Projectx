@@ -9,11 +9,11 @@ logger = loguru.logger.bind(name="customteam")
 from pathlib import Path
 
 class CustomTeam:
-    def __init__(self, rag_pipeline, web_agent,vector_dir:Path):
+    def __init__(self, rag_pipeline, web_agent):
         self.rag_pipeline = rag_pipeline
         self.web_agent = web_agent
         self.model = get_model()
-        self.vector_dir = vector_dir.resolve()
+    
 
     # ---------- UTIL ----------
     def extract_web_docs(self, task_result) -> dict:
@@ -76,12 +76,11 @@ class CustomTeam:
 
     # ---------- RUN ----------
     async def run(self, query: str,doc_id:str):
-        persist_dir = self.vector_dir / doc_id
-        rag_result = await asyncio.to_thread(self.rag_pipeline.query,   
+        rag_result = await (self.rag_pipeline.query(
            query,
-           str(persist_dir),
+           str(doc_id),
            
-        )
+        ))
 
         score = float(rag_result["score"])
 

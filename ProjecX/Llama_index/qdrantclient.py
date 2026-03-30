@@ -38,7 +38,7 @@ class QdrantHybridClient:
         self.client = AsyncQdrantClient(url="http://localhost:6333")
 
     # -------- CREATE COLLECTION --------
-    async def create_collection(self, collection_name: str, dim: int = 768):
+    async def create_collection(self, collection_name: str, dim: int = 2560):
 
         collections = await self.client.get_collections()
         existing = {c.name for c in collections.collections}

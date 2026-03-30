@@ -9,6 +9,8 @@ from llama_index.core.postprocessor import SentenceTransformerRerank
 from ProjecX.Llama_index.qdrantclient import QdrantHybridClient
 from ProjecX.Llama_index.sparse import compute_sparse_vectors
 from qdrant_client.models import SparseVector
+from types import SimpleNamespace
+from llama_index.core.schema import NodeWithScore, TextNode
 
 
 # ---------------- Reranker ----------------
@@ -53,19 +55,19 @@ class Rag_pipeline:
     # ---------------- BUILD POINTS ----------------
 
 
-def _build_points(self, texts, dense_embeddings, sparse_vectors):
-    from qdrant_client.models import PointStruct
+    def _build_points(self, texts, dense_embeddings, sparse_vectors):
+        from qdrant_client.models import PointStruct
 
-    points = []
+        points = []
 
-    for i, (text, dense, sparse) in enumerate(zip(texts, dense_embeddings, sparse_vectors)):
+        for i, (text, dense, sparse) in enumerate(zip(texts, dense_embeddings, sparse_vectors)):
 
-        sparse_vector = SparseVector(
-            indices=sparse.indices.tolist(),
-            values=sparse.values.tolist()
-        )
+            sparse_vector = SparseVector(
+                indices=sparse.indices.tolist(),
+                values=sparse.values.tolist()
+            )
 
-        points.append(
+            points.append(
             PointStruct(
                 id=i,
                 vector={
@@ -76,7 +78,7 @@ def _build_points(self, texts, dense_embeddings, sparse_vectors):
             )
         )
 
-    return points
+        return points
 
     # ---------------- INGEST ----------------
     async def ingest(self, file_path: str, persist_dir: str):
@@ -117,9 +119,16 @@ def _build_points(self, texts, dense_embeddings, sparse_vectors):
 
             # 1. Query embeddings
             query_dense = self.model_loader.embed_model.get_text_embedding(query)
-            query_sparse = compute_sparse_vectors([query])[0]
+            if hasattr(query_dense, "tolist"):
+                query_dense = query_dense.tolist()
 
-            # 2. Hybrid search (Qdrant RRF)
+            sparse_obj = compute_sparse_vectors([query])[0]
+            query_sparse = {
+                "indices": sparse_obj.indices.tolist() if hasattr(sparse_obj.indices, "tolist") else sparse_obj.indices,
+                "values": sparse_obj.values.tolist() if hasattr(sparse_obj.values, "tolist") else sparse_obj.values,
+            }
+
+            # 2. Hybrid search
             results = await self.qdrant.search(
                 collection_name,
                 query_dense,
@@ -130,24 +139,33 @@ def _build_points(self, texts, dense_embeddings, sparse_vectors):
             # 3. Extract texts
             texts = [r.payload["text"] for r in results]
 
-            # 4. Convert for reranker
-            nodes = [{"text": t} for t in texts]
+            # 4. Convert to Llama nodes
+            llama_nodes = [
+                NodeWithScore(node=TextNode(text=t), score=1.0)
+                for t in texts
+            ]
 
             # 5. Rerank
             reranked = reranker.postprocess_nodes(
-                nodes,
+                llama_nodes,
                 query_str=query
             )
 
-            # 6. Final answer (simple aggregation)
-            answer = "\n".join([n["text"] for n in reranked[:3]])
+            # 6. Convert to dict
+            reranked_nodes = [
+                {"text": n.node.get_content()}
+                for n in reranked
+            ]
 
-            score = 1.0 if reranked else 0.0
+            # 7. Final answer
+            answer = "\n".join([n["text"] for n in reranked_nodes[:3]])
+
+            score = reranked[0].score if reranked else 0.0
 
             return {
                 "answer": answer,
                 "score": score,
-                "nodes": reranked,
+                "nodes": reranked_nodes,  
             }
 
         except Exception:
