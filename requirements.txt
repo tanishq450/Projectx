@@ -28,5 +28,8 @@ tavily
 python-multipart
 sentence-transformers
 chonkie
+qdrant-client
+fastembed
+llama-index-vector-stores-qdrant
 
 

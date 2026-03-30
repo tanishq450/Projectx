@@ -1,34 +1,36 @@
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from pydantic import BaseModel
 import uuid
-import os
 from pathlib import Path
+import logging
+import shutil
 
 from ProjecX.Llama_index.Rag_pipeline import Rag_pipeline
 from ProjecX.Auto.team import CustomTeam
 from ProjecX.Auto.web_search import web_search_agent
 
+# ---------------- Logging ----------------
+logging.basicConfig(level=logging.INFO)
+
 # ---------------- App ----------------
-app = FastAPI(title="Document RAG Server", version="0.1.0")
+app = FastAPI(title="ProjectX RAG Server", version="2.0.0")
 
 BASE_DIR = Path(__file__).resolve().parent
 UPLOAD_DIR = BASE_DIR / "uploads"
-VECTOR_DIR = BASE_DIR / "vector_stores"
 
 UPLOAD_DIR.mkdir(exist_ok=True)
-VECTOR_DIR.mkdir(exist_ok=True)
 
 @app.get("/")
 def root():
-    return {"message": "Document RAG server running"}
+    return {"message": "ProjectX Hybrid RAG server running"}
 
-
-# ---------------- Core objects ----------------
+# ---------------- Core ----------------
 rag_pipeline = Rag_pipeline()
+
 team = CustomTeam(
     rag_pipeline=rag_pipeline,
     web_agent=web_search_agent(),
-    vector_dir=VECTOR_DIR,
+    vector_dir=None,  # ❌ no longer needed
 )
 
 # ---------------- Schemas ----------------
@@ -48,43 +50,36 @@ class QueryResponse(BaseModel):
     score: float
 
 
-# ---------------- Upload (INGESTION ONLY) ----------------
+# ---------------- Upload (INGEST) ----------------
 @app.post("/upload", response_model=UploadResponse)
 async def upload_file(file: UploadFile = File(...)):
+
     if not file.filename.lower().endswith(".pdf"):
-        raise HTTPException(
-            status_code=400,
-            detail="Only PDF files are supported",
-        )
+        raise HTTPException(400, "Only PDF files are supported")
 
     doc_id = str(uuid.uuid4())
     file_path = UPLOAD_DIR / f"{doc_id}.pdf"
-    persist_dir = VECTOR_DIR / doc_id
 
-    # Save PDF
+    # Save file
     with open(file_path, "wb") as f:
         f.write(await file.read())
 
-    # Ingest document
     try:
-        rag_pipeline.ingest(
+        # 🔥 IMPORTANT: await
+        await rag_pipeline.ingest(
             file_path=str(file_path),
-            persist_dir=str(persist_dir),
+            persist_dir=doc_id,   # now used as collection_name
         )
-    except Exception:
-        # Cleanup on failure
+
+        logging.info(f"Ingested doc_id={doc_id}")
+
+    except Exception as e:
+        logging.error(f"Ingestion failed: {e}")
+
         if file_path.exists():
             file_path.unlink()
-        if persist_dir.exists():
-            for p in persist_dir.rglob("*"):
-                if p.is_file():
-                    p.unlink()
-            persist_dir.rmdir()
 
-        raise HTTPException(
-            status_code=500,
-            detail="Failed to ingest document",
-        )
+        raise HTTPException(500, "Failed to ingest document")
 
     return UploadResponse(
         doc_id=doc_id,
@@ -92,24 +87,24 @@ async def upload_file(file: UploadFile = File(...)):
     )
 
 
-# ---------------- Query (DECISION LAYER) ----------------
+# ---------------- Query ----------------
 @app.post("/query", response_model=QueryResponse)
 async def query_doc(req: QueryRequest):
-    persist_dir = VECTOR_DIR / req.doc_id
 
-    if not persist_dir.exists():
-        raise HTTPException(
-            status_code=404,
-            detail="Vector index not found for this document",
+    try:
+        result = await team.run(
+            query=req.query,
+            doc_id=req.doc_id,
         )
 
-    result = await team.run(
-        query=req.query,
-        doc_id=req.doc_id,
-    )
+        logging.info(f"Query routed to {result['source']}")
 
-    return QueryResponse(
-        source=result["source"],
-        answer=result["answer"],
-        score=result["score"],
-    )
+        return QueryResponse(
+            source=result["source"],
+            answer=result["answer"],
+            score=result["score"],
+        )
+
+    except Exception as e:
+        logging.error(f"Query failed: {e}")
+        raise HTTPException(500, "Query failed")

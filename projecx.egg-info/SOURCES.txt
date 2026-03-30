@@ -10,9 +10,10 @@ ProjecX/Auto/web_search.py
 ProjecX/Llama_index/Data_ingestion.py
 ProjecX/Llama_index/Rag_pipeline.py
 ProjecX/Llama_index/__init__.py
-ProjecX/Llama_index/chroma_client.py
-ProjecX/Llama_index/data_retirval.py
+ProjecX/Llama_index/data_retirieval.py
 ProjecX/Llama_index/model_loader.py
+ProjecX/Llama_index/qdrant_client.py
+ProjecX/Llama_index/sparse.py
 projecx.egg-info/PKG-INFO
 projecx.egg-info/SOURCES.txt
 projecx.egg-info/dependency_links.txt

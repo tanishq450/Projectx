@@ -8,7 +8,7 @@ from llama_index.vector_stores.chroma import ChromaVectorStore
 from llama_index.core import Document
 from pathlib import Path
 from llama_index.core import load_index_from_storage
-from ProjecX.Llama_index.chroma_client import get_chroma_client
+
 
 
 
@@ -116,58 +116,3 @@ class chunking:
 
 
 
-class VectorStoreManager:
-    def __init__(self):
-        self.logger = loguru.logger
-
-    def create(self, documents: list, persist_dir: str) -> VectorStoreIndex:
-        if not documents:
-            raise ValueError("No documents provided")
-
-        self.logger.info(f"Creating Chroma index at {persist_dir}")
-        Path(persist_dir).mkdir(parents=True, exist_ok=True)
-
-        chroma_client = get_chroma_client(persist_dir)
-
-        collection = chroma_client.get_or_create_collection(
-            name="rag_docs"
-        )
-
-        vector_store = ChromaVectorStore(
-            chroma_collection=collection
-        )
-
-        storage_context = StorageContext.from_defaults(
-            vector_store=vector_store
-        )
-
-        index = VectorStoreIndex.from_documents(
-            documents,
-            storage_context=storage_context,
-        )
-
-        storage_context.persist(persist_dir=persist_dir)
-        return index
-
-    def load(self, persist_dir: str) -> VectorStoreIndex:
-        if not Path(persist_dir).exists():
-            raise RuntimeError(f"No vector index found at {persist_dir}")
-
-        chroma_client = get_chroma_client(persist_dir)
-
-        collection = chroma_client.get_or_create_collection(
-            name="rag_docs"
-        )
-
-        vector_store = ChromaVectorStore(
-            chroma_collection=collection
-        )
-
-        storage_context = StorageContext.from_defaults(
-            vector_store=vector_store
-        )
-
-        return VectorStoreIndex.from_vector_store(
-            vector_store,
-            storage_context=storage_context,
-        )
