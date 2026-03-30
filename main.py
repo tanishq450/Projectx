@@ -8,6 +8,7 @@ import shutil
 from ProjecX.Llama_index.Rag_pipeline import Rag_pipeline
 from ProjecX.Auto.team import CustomTeam
 from ProjecX.Auto.web_search import web_search_agent
+from evaluate import ask_with_full_evaluation
 
 # ---------------- Logging ----------------
 logging.basicConfig(level=logging.INFO)
@@ -43,12 +44,14 @@ class UploadResponse(BaseModel):
 class QueryRequest(BaseModel):
     doc_id: str
     query: str
+    evaluate:bool = False
 
 
 class QueryResponse(BaseModel):
     source: str
     answer: str
     score: float
+    evaluation:dict|None = None
 
 
 # ---------------- Upload (INGEST) ----------------
@@ -93,17 +96,34 @@ async def upload_file(file: UploadFile = File(...)):
 async def query_doc(req: QueryRequest):
 
     try:
-        result = await team.run(
+        # ---- NORMAL FLOW ----
+        if not req.evaluate:
+            result = await team.run(
+                query=req.query,
+                doc_id=req.doc_id,
+            )
+
+            logging.info(f"Query routed to {result['source']}")
+
+            return QueryResponse(
+                source=result.get("source", ""),
+                answer=result.get("answer", ""),
+                score=result.get("score", 0),
+                evaluation=None
+            )
+
+        # ---- EVALUATION FLOW (uses your function) ----
+        eval_result = await ask_with_full_evaluation(
             query=req.query,
-            doc_id=req.doc_id,
+            pipeline=rag_pipeline,
+            persist_dir=req.doc_id 
         )
 
-        logging.info(f"Query routed to {result['source']}")
-
         return QueryResponse(
-            source=result["source"],
-            answer=result["answer"],
-            score=result["score"],
+            source="rag_pipeline_eval",
+            answer=eval_result["answer"],
+            score=0.0,  
+            evaluation=eval_result["evaluation"]
         )
 
     except Exception as e:

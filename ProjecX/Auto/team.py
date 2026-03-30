@@ -78,7 +78,7 @@ class CustomTeam:
     async def run(self, query: str,doc_id:str):
         rag_result = await (self.rag_pipeline.query(
            query,
-           str(doc_id),
+           persist_dir=str(doc_id),
            
         ))
 
