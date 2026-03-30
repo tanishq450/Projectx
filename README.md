@@ -1,6 +1,6 @@
-# 🚀 ProjectX – Hybrid Multi-Agent RAG System
+# 🚀 ProjectX – Hybrid Multi-Agent RAG System (Qdrant + RRF + Reranker)
 
-ProjectX is a modular AI system that combines **Retrieval-Augmented Generation (RAG)**, **web search**, and a **reranking layer** using a **multi-agent architecture built on FastAPI** to generate complete, accurate, and up-to-date responses.
+ProjectX is a modular AI system that combines **Retrieval-Augmented Generation (RAG)**, **web search**, and **hybrid retrieval (dense + sparse)** using a **multi-agent architecture built on FastAPI** to generate accurate, complete, and up-to-date responses.
 
 ---
 
@@ -8,8 +8,8 @@ ProjectX is a modular AI system that combines **Retrieval-Augmented Generation (
 
 Traditional RAG systems rely only on ingested documents:
 
-* Missing information → system fails
-* Partial information → incomplete answers
+- ❌ Missing information → system fails  
+- ❌ Partial information → incomplete answers  
 
 ---
 
@@ -17,112 +17,113 @@ Traditional RAG systems rely only on ingested documents:
 
 ProjectX introduces a **hybrid knowledge system**:
 
-* 📚 Uses **RAG** for document-based knowledge
-* 🌐 Uses **web search** for missing information
-* 🔀 Combines both when knowledge is partial
-* 🧠 Uses a **reranker (BAAI/bge-reranker-v2-m3)** to select the most relevant context
+- 📚 Uses **RAG** for document-based knowledge  
+- 🌐 Uses **web search** for missing information  
+- 🔀 Combines both when knowledge is partial  
+- 🧠 Uses **RRF (Reciprocal Rank Fusion)** for hybrid retrieval  
+- 🎯 Uses **reranker (BAAI/bge-reranker-v2-m3)** for final relevance  
 
 ---
 
 ## 🎯 Result
 
-* More complete answers
-* Better accuracy
-* Improved relevance via reranking
-* Real-time information support
+- More complete answers  
+- Better accuracy  
+- Improved relevance via reranking  
+- Real-time information support  
 
 ---
 
 ## ⚙️ Key Features
 
-* Multi-agent architecture (routing + coordination)
-* Retrieval-Augmented Generation (RAG)
-* Web search integration
-* Reranking layer (cross-encoder)
-* FastAPI backend
-* Vector database (ChromaDB)
-* Modular system design
+- Multi-agent architecture (routing + coordination)  
+- Hybrid retrieval (Dense + BM25 Sparse)  
+- Qdrant vector database  
+- RRF fusion inside database  
+- Cross-encoder reranker  
+- Web search integration  
+- FastAPI backend  
+- Modular system design  
 
 ---
 
 ## 🏗️ Architecture
-
 User Query
 ↓
 FastAPI Endpoint
 ↓
 Supervisor / Router
 ↓
--
-
-## | RAG Agent | Web Agent | Hybrid |
-
+┌───────────────┬───────────────┬───────────────┐
+│ RAG Agent │ Web Agent │ Hybrid │
+└───────────────┴───────────────┴───────────────┘
+↓
+Qdrant Hybrid Retrieval (Dense + Sparse + RRF)
 ↓
 Reranker (BAAI/bge-reranker-v2-m3)
 ↓
-LLM Response Generator
-↓
-Final Output
+Final Answer
+
+
 
 ---
 
 ## 🧠 How It Works
 
-1. Request comes through FastAPI
-2. Supervisor agent analyzes query intent
+1. Request comes through FastAPI  
+2. Supervisor agent analyzes query intent  
 3. Routes query:
-
-   * RAG → stored knowledge
-   * Web → external info
-   * Hybrid → both
-4. Retrieved chunks are reranked
-5. Top context is selected
-6. LLM generates final response
+   - RAG → stored document knowledge  
+   - Web → external search  
+   - Hybrid → combines both  
+4. Qdrant performs hybrid retrieval (dense + sparse + RRF)  
+5. Retrieved chunks are reranked  
+6. Top context is selected  
+7. Final response is generated  
 
 ---
 
 ## 💡 Example Use Cases
 
-**Query:** What is transformer architecture?
-→ RAG
+**Query:** What is transformer architecture?  
+→ RAG  
 
-**Query:** Latest AI news
-→ Web search
+**Query:** Latest AI news  
+→ Web search  
 
-**Query:** Explain LLMs with latest advancements
-→ Hybrid + Reranker
+**Query:** Explain LLMs with latest advancements  
+→ Hybrid + Reranker  
 
 ---
 
 ## 🔬 Reranking
 
-ProjectX improves retrieval quality using a cross-encoder reranker:
-
-```python id="rerank01"
-from llama_index.postprocessor import SentenceTransformerRerank
+```python
+from llama_index.core.postprocessor import SentenceTransformerRerank
 
 reranker = SentenceTransformerRerank(
     model="BAAI/bge-reranker-v2-m3",
     top_n=5
 )
-```
 
-Only the most relevant chunks are passed to the LLM, improving accuracy and reducing noise.
 
----
+🔍 Retrieval Strategy
+Dense → semantic understanding
+Sparse → keyword matching
+RRF → combines both
+Reranker → final refinement
 
-## 🛠️ Tech Stack
 
-* Python
-* FastAPI
-* LlamaIndex
-* ChromaDB
-* SentenceTransformers (bge-reranker-v2-m3)
-* Custom Multi-Agent System
+🛠️ Tech Stack
+Python
+FastAPI
+Qdrant
+FastEmbed
+SentenceTransformers
+LlamaIndex
+Multi-Agent System
 
----
 
-## 📂 Project Structure
 
 Projectx/
 │
@@ -131,48 +132,47 @@ Projectx/
 ├── Dockerfile
 │
 ├── ProjecX/
-│   ├── Auto/              # Agents
-│   │   ├── Rag_agent.py
+│   ├── Auto/
 │   │   ├── team.py
 │   │   ├── web_search.py
-│   │   ├── prompt.py
-│   │   └── model.py
 │   │
-│   ├── Llama_index/       # RAG pipeline
-│       ├── Rag_pipeline.py
-│       ├── data_retrieval.py
-│       ├── chroma_client.py
-│       └── model_loader.py
+│   ├── Llama_index/
+│   │   ├── Rag_pipeline.py
+│   │   ├── data_ingestion.py
+│   │   ├── sparse.py
+│   │   └── model_loader.py
+│
+├── qdrant.py
+├── tests/
 
----
 
-## ⚡ Run Locally
-
-```bash id="runlocal01"
-git clone https://github.com/tanishq450/Projectx.git
-cd Projectx
-pip install -r requirements.txt
-python main.py
+🐳 Run Qdrant
+```bash
+docker run -p 6333:6333 qdrant/qdrant
 ```
 
----
-
-## 🐳 Run with Docker
-
-### Build Image
-
-```bash id="dockerbuild01"
-docker build -t projectx .
+▶️ Run Server
+```bash
+uvicorn main:app --reload
 ```
 
-### Run Container
-
-```bash id="dockerrun01"
-docker run -it --env-file .env -p 8000:8000 projectx
+🔌 API Usage
+Upload
+```bash
+curl -X POST http://localhost:8000/upload \
+-F "file=@sample.pdf"
 ```
 
----
+Query
+```bash
+curl -X POST http://localhost:8000/query \
+-H "Content-Type: application/json" \
+-d '{
+  "doc_id": "your-doc-id",
+  "query": "What is transformer architecture?"
+}'
 
-## 👨‍💻 Author
+
+👨‍💻 Author
 
 Tanishq Kumar
