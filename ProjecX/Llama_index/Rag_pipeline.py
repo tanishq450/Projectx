@@ -157,8 +157,28 @@ class Rag_pipeline:
                 for n in reranked
             ]
 
-            # 7. Final answer
-            answer = "\n".join([n["text"] for n in reranked_nodes[:3]])
+            # 7. Build context
+            top_k_nodes = reranked_nodes[:3]
+            context = "\n\n".join([n["text"] for n in top_k_nodes])
+
+            # 8. LLM synthesis (REAL RAG)
+            prompt = f"""
+            You are a helpful AI assistant.
+
+            Answer the question based ONLY on the context below.
+
+            Context:
+            {context}
+
+            Question:
+            {query}
+
+            Answer clearly and concisely:
+            """
+
+            response = self.model_loader.llm.complete(prompt)
+
+            answer = str(response)
 
             score = reranked[0].score if reranked else 0.0
 

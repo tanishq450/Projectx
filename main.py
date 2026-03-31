@@ -10,6 +10,7 @@ from ProjecX.Auto.team import CustomTeam
 from ProjecX.Auto.web_search import web_search_agent
 from evaluate import ask_with_full_evaluation
 
+
 # ---------------- Logging ----------------
 logging.basicConfig(level=logging.INFO)
 
